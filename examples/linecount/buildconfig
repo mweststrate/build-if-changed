@@ -1,0 +1,9 @@
+# check all *js* files, except for node_modules
+[cat ../../*.js* > all-lines.txt]
+../../**.js*
+!node_modules
+
+# if the other command wrote all-lines, we will detect the change
+# (the ordering of the commands is not relevant to this)
+[cat all-lines.txt | wc -l]
+all-lines.txt

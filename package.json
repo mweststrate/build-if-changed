@@ -1,0 +1,31 @@
+{
+  "name": "build-if-changed",
+  "version": "0.1.0",
+  "description": "Minimal build system for maximal efficiency",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "build-if-changed": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mweststrate/build-if-changed.git"
+  },
+  "keywords": [
+    "build",
+    "make"
+  ],
+  "author": "Michel Weststrate",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mweststrate/build-if-changed/issues"
+  },
+  "homepage": "https://github.com/mweststrate/build-if-changed#readme",
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "checksum": "^0.1.1",
+    "globby": "^4.0.0"
+  }
+}
