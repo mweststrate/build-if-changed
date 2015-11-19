@@ -1,5 +1,6 @@
 # check all *js* files, except for node_modules
 [cat ../../*.js* > all-lines.txt]
+out: all-lines.txt
 ../../**.js*
 !node_modules
 
