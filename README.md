@@ -14,7 +14,7 @@ A simple pattern that allows for powerful composition for dependent build tasks.
 
 ## General usage
 
-Run `build-if-changed` in any directory. It will search in the current directory or upwards for file named `buildconfig`.
+Run `build-if-changed` in any directory. It will search in the current directory or upwards for a file named `buildconfig`.
 
 A build config file looks like this:
 
@@ -34,6 +34,9 @@ It is perfectly fine if the output of one command is watched by another command,
 Glob patterns and patterns are always interpreted relatively to the location of the `buildconfig` file.
 
 Also see the [examples](examples/) directory for some examples.
+
+This is what using `build-if-changed` looks like:
+![demo](buildifchanged.png)
 
 ## Command usage
 
@@ -64,9 +67,16 @@ Drops the `.buildifchanged` directory and thereby forcing all commands to run up
 ## Questions
 
 **Q: What is this magically appearing `.buildifchanged` folder?**
+
 A:File hashes as stored in the folder `.buildifchanged` in the same directory as the `buildconfig` file. This file should be excluded from version control.
 
+**Q: Does the order of commands matter?**
+
+A: Yes. It doesn't matter for the buid result, but it does matter for performance. If command A produces input for command B, A should be defined before B.
+Otherwise the system might run the commands B, A, B instead of just A, B.
+
 **Q: Why can a build command be only one line?**
+
 A: Separation of concerns;
 build-if-changed only determines when your build tools should be run. 
 Complex commands should be organized outside build-if-changed so that you can test, version and invoke them manually.

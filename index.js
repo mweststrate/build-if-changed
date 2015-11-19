@@ -12,6 +12,7 @@
  * support watch mode
  * support one (or more build) file configs as input argument
  * support cleanup command
+ * expose programmatic api
  */
 
 var process = require('process');
@@ -81,7 +82,7 @@ function readConfigFile(filename) {
 			tasks.push(currentTask);
 		} else if (line.charAt(0) === '#') {
 			// noop, comment
-		} else {
+		} else if (line) {
 			if (!currentTask)
 				exit('buildconfig files should start with a shell command between brackets. E.g.: \n[sass *.js -o main.css]\n**/*.scss\n...more dependencies', 2);
 			currentTask.patterns.push(line);
@@ -108,7 +109,7 @@ function runTasksUntilExhausted(path, tasks) {
 				i = 0;
 				didSomeTaskRunInLastIteration = false;
 			} else {
-				exit(didAnyTaskRun ? "FINISHED, some tasks did run" : "SKIPPED, no changes detected");
+				exit(didAnyTaskRun ? "FINISHED, some tasks did run" : "SKIPPED, no changes since last run");
 			}
 		}
 		runTask(path, tasks[i], runNextTask);
@@ -122,20 +123,28 @@ function runTask(path, task, callback) {
 		cwd: path,
 		nodir: true
 	}).then(function(files) {
-		 var left = files.length;
-		 var md5s = new Array(left);
-		 files.forEach(function(filename, idx) {
-			checksum.file(path + '/' + filename, function(err, sha) {
-				if (err)
-					return void callback(err);
-				md5s[idx] = sha;
-				if (--left === 0) {
-					runTaskIfHashesModified(path, task, md5s.map(function(md5, idx) {
-						return md5 + ' ' + files[idx];
-					}).join('\n'), callback);
-				}
+		var left = files.length;
+		var md5s = new Array(left);
+
+		function gotHashes() {
+			runTaskIfHashesModified(path, task, md5s.map(function(md5, idx) {
+				return md5 + ' ' + files[idx];
+			}).join('\n'), callback);
+		}
+
+		if (files.length === 0) {
+			gotHashes();
+		} else {
+			files.forEach(function(filename, idx) {
+				checksum.file(path + '/' + filename, function(err, sha) {
+					if (err)
+						return void callback(err);
+					md5s[idx] = sha;
+					if (--left === 0)
+						gotHashes();
+				});
 			});
-		});
+		}
 	}, callback);
 }
 
