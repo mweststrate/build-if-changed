@@ -7,13 +7,13 @@
 
 /**
  * TODO:
- * add output specification
  * add command line parser
  * support -c (in directory option)
  * support watch mode
  * support one (or more build) file configs as input argument
  * support cleanup command
  * expose programmatic api
+ * support debug mode
  */
 
 var process = require('process');
@@ -73,14 +73,6 @@ function readConfigFile(filename) {
 			}
 			if (!currentTask.cmd)
 				return void exit('task command should not be empty');
-			currentTask.cmdMd5 = stringToMd5(currentTask.cmd);
-			if (tasks.filter(
-					function(task) {
-						return task.cmdMd5 === currentTask.cmdMd5
-					}
-				).length > 0) {
-				return void exit('task command should be unique')
-			}
 			tasks.push(currentTask);
 		} else if (line.charAt(0) === '#') {
 			// noop, comment
@@ -91,6 +83,9 @@ function readConfigFile(filename) {
 				currentTask.outputPatterns.push(line.substr(4));
 			currentTask.inputPatterns.push(line);
 		}
+	});
+	tasks.forEach(function (task) { 
+		task.cmdMd5 = stringToMd5(JSON.stringify(task));
 	});
 	return tasks;
 }
@@ -147,7 +142,7 @@ function runTaskIfHashesModified(path, task, outputFilesHashData, inputFilesHash
 	if (!outputFilesHashData && task.outputPatterns.length) {
 		buildReason = "(output files are missing)";
 	} else if (existingOutputHashes !== outputFilesHashData) {
-		buildReason = "(output files have changed)"
+		buildReason = "(output files have changed)";
 	} else if (existingInputHashes !== inputFilesHashData) {
 		buildReason = "(input files have changed)";
 	} else {
@@ -155,28 +150,19 @@ function runTaskIfHashesModified(path, task, outputFilesHashData, inputFilesHash
 	}
 	
 	if (shouldBuild) {
-		// clean output files!
-		globby(task.outputPatterns, {
-			cwd: path,
-			nodir: true
-		}).then(function(files) {
-			// TODO: delete those files
-			
-			// finally, build!
-			executeTask(path, task, buildReason, function(err) {
+		executeTask(path, task, buildReason, function(err) {
+			if (err)
+				return void callback(err);
+			getHashesFromGlobs(path, task.outputPatterns, function(err, freshOutputHashData) {
 				if (err)
 					return void callback(err);
-				getHashesFromGlobs(path, task.outputPatterns, function(err, freshOutputHashData) {
-					if (err)
-						return void callback(err);
-					if (task.outputPatterns.length && !freshOutputHashData)
-						return void exit("Executing task '" + task.cmd + "' didn't result in any files being written on disk! Patterns: " + task.outputPatterns.join(", "));
-					fs.writeFileSync(outputHashesFile, freshOutputHashData, 'utf8');
-					fs.writeFileSync(inputHashesFile,  inputFilesHashData,  'utf8');
-					callback(null, true);
-				});
+				if (task.outputPatterns.length && !freshOutputHashData)
+					return void exit("Executing task '" + task.cmd + "' didn't result in any files being written on disk! No matches for: " + task.outputPatterns.join(", "), 14);
+				fs.writeFileSync(outputHashesFile, freshOutputHashData, 'utf8');
+				fs.writeFileSync(inputHashesFile,  inputFilesHashData,  'utf8');
+				callback(null, true);
 			});
-		}, callback);
+		});
 	} else {
 		callback();
 	}

@@ -1,6 +1,6 @@
 {
   "name": "build-if-changed",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Minimal build system for maximal efficiency",
   "main": "index.js",
   "scripts": {

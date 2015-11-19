@@ -20,6 +20,7 @@ A build config file looks like this:
 
 ```
 [some command]
+out: glob pattern of files produces by this command
 glob pattern1 to watch
 glob pattern2 to watch
 
@@ -27,9 +28,12 @@ glob pattern2 to watch
 more patterns to watch
 ```
 
-`build-if-changed` will calculate the hashes of all files that match the patterns,
-and execute the matching command(s) if the files did change since the previous run of `build-if-changed`.
+`build-if-changed` will calculate the hashes of all files that match the [glob patterns](https://www.npmjs.com/package/glob#glob-primer),
+and execute the corresponding command(s) if the files did change since the previous run of `build-if-changed`.
 It is perfectly fine if the output of one command is watched by another command, `build-if-changed` will keep trying to run commands until no files change anymore.  
+
+If one or more `out:` patterns are provided `build-if-changed` will also check the generate files to determine whether a command should run.
+This is useful if you for example delete or alter the produced files and want to make sure that `build-if-changed` also runs in these cases. 
 
 Glob patterns and patterns are always interpreted relatively to the location of the `buildconfig` file.
 
@@ -74,6 +78,10 @@ A:File hashes as stored in the folder `.buildifchanged` in the same directory as
 
 A: Yes. It doesn't matter for the buid result, but it does matter for performance. If command A produces input for command B, A should be defined before B.
 Otherwise the system might run the commands B, A, B instead of just A, B.
+
+**Q: Does it run on Windows?**
+
+A: Yes. But remember; only use forward, unix-style slashes in patterns to denote the path separator.
 
 **Q: Why can a build command be only one line?**
 
