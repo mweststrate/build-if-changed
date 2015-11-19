@@ -1,0 +1,3 @@
+[tsc src/*.ts --outDir dist/]
+out: dist/**/*.js
+src/**/*.ts

@@ -1,0 +1,2 @@
+.buildifchanged
+dist/*.js
