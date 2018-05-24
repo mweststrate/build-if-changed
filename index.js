@@ -18,6 +18,10 @@
 
 var process = require('process');
 var fs = require('fs');
+
+const gracefulFs = require('graceful-fs');
+gracefulFs.gracefulify(fs);
+
 var path = require('path');
 var globby = require('globby');
 var crypto = require('crypto');
